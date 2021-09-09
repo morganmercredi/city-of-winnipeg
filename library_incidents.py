@@ -7,12 +7,15 @@ https://data.winnipeg.ca/Libraries/Library-Incident-Reports/ffe7-mwdv/data
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import datetime as datetime
 
 
 sns.set()
 
+file_path = '../../Sample Data Sets/Library_Incident_Reports.csv'
+
 # Read in the csv file
-incidents = pd.read_csv('Library_Incident_Reports.csv')
+incidents = pd.read_csv(file_path)
 
 # Clean up the table, set the date column as the index
 incidents = incidents.drop(columns='ID')
@@ -121,16 +124,11 @@ by_year_library_type = incidents.pivot_table(index=incidents.index.year,
 # Get the daily number of daily incidents
 daily_incidents = incidents.resample('D', kind='period').size()
 
-# Resample to weekly incidents and show them for 2018 and 2019
-fig, ax = plt.subplots(2, figsize=(10, 10))
-daily_incidents.resample('W', kind='period').sum()['2018'].plot(ax=ax[0])
-daily_incidents.resample('W', kind='period').sum()['2019'].plot(ax=ax[1]) 
-ax[0].set_ylabel('Number of incidents')
-ax[1].set_ylabel('Number of incidents')
-ax[0].set_ylim([0, 30]) 
-ax[1].set_ylim([0, 30])
-ax[0].set_title('Weekly Incidents in 2018 and 2019')
+# The date that Millennium library implemented enhanced security screening
+millennium_screening = pd.to_datetime('2019-02-27')
 
+# The date that libraries first shut down due to COVID-19
+first_lockdown = pd.to_datetime('2020-03-16')
 
 # Get the daily number of daily incidents at the Millennium library
 daily_millennium_incidents = incidents[incidents['Location'] == 'Millennium'].resample('D', kind='period').size()
@@ -144,6 +142,25 @@ ax[1].set_ylabel('Number of incidents')
 ax[0].set_ylim([0, 30]) 
 ax[1].set_ylim([0, 30])
 ax[0].set_title('Weekly Incidents at Millennium Library in 2018 and 2019')
+plt.axvline(x=millennium_screening, linestyle='--', color='r'); 
+plt.annotate(xytext=(millennium_screening + datetime.timedelta(days=10), 25), 
+             xy=(millennium_screening, 22.5),
+             text='enhanced screening begins',
+             arrowprops=dict(color='red', arrowstyle='->'),
+             bbox=dict(pad=5, facecolor="none", edgecolor="none"))
+
+# Alternatively, view the total weekly incidents on a single chart
+fig = plt.figure(figsize=(10, 5))
+ax = daily_millennium_incidents.resample('W', kind='period').sum()['2017':'2019'].plot()
+ax.set_ylabel('Number of incidents')
+ax.set_ylim([0, 25]) 
+ax.set_title('Weekly Incidents at Millennium Library (2017 - 2019)')
+plt.axvline(x=millennium_screening, linestyle='--', color='r'); 
+plt.annotate(xytext=(millennium_screening + datetime.timedelta(days=10), 20), 
+             xy=(millennium_screening, 15.5),
+             text='enhanced screening begins',
+             arrowprops=dict(color='red', arrowstyle='->'),
+             bbox=dict(pad=5, facecolor="none", edgecolor="none"))
 
 plt.show()
 
