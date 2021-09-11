@@ -110,7 +110,7 @@ weekly_visits = counts['Count'].resample('W', kind='period').sum()
 plt.figure()
 weekly_visits['2015'].plot()
 plt.gca().set_xlabel('Date')
-plt.gca().set_ylabel('Visits')
+plt.gca().set_ylabel('Visitors')
 plt.gca().set_title('Total Weekly Visitors in 2015')
 
 # Get a new table with all counts for a given library in a week merged into one row

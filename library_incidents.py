@@ -104,6 +104,17 @@ plt.gca().set_xlabel('Year')
 plt.gca().set_ylabel('Number of incidents')
 plt.gca().set_title('Reported Library Incidents Over Time')
 
+# Get the most common incident reported at each library
+most_common_incidents = incidents.groupby(['Location']).apply(lambda x: x.groupby('Type').size().idxmax())
+print(most_common_incidents)
+
+# Get the most common incident reported at each library each year
+most_common_incidents_by_year = incidents.groupby(['Location',
+                                                   incidents.index.year]).apply(lambda x: x.groupby('Type').size().idxmax()).unstack(level=0)
+
+# Show the most common incidents per year at Millennium library
+print(most_common_incidents_by_year['Millennium'])
+
 # Get the number of incidents by year and library
 by_year_and_library = incidents.pivot_table(index=incidents.index.year,
                                             columns='Location',
@@ -156,9 +167,28 @@ ax.set_ylabel('Number of incidents')
 ax.set_ylim([0, 25]) 
 ax.set_title('Weekly Incidents at Millennium Library (2017 - 2019)')
 plt.axvline(x=millennium_screening, linestyle='--', color='r'); 
-plt.annotate(xytext=(millennium_screening + datetime.timedelta(days=10), 20), 
+plt.annotate(xytext=(millennium_screening + datetime.timedelta(days=15), 20), 
              xy=(millennium_screening, 15.5),
              text='enhanced screening begins',
+             arrowprops=dict(color='red', arrowstyle='->'),
+             bbox=dict(pad=5, facecolor="none", edgecolor="none"))
+
+# Show the total weekly incidents going into 2021, with the effect of lockdowns
+fig = plt.figure(figsize=(10, 5))
+ax = daily_millennium_incidents.resample('W', kind='period').sum()['2017':'2021'].plot()
+ax.set_ylabel('Number of incidents')
+ax.set_ylim([0, 25]) 
+ax.set_title('Weekly Incidents at Millennium Library (2017 - 2021)')
+plt.axvline(x=millennium_screening, linestyle='--', color='r'); 
+plt.annotate(xytext=(millennium_screening + datetime.timedelta(days=15), 20), 
+             xy=(millennium_screening, 15.5),
+             text='enhanced screening \nbegins',
+             arrowprops=dict(color='red', arrowstyle='->'),
+             bbox=dict(pad=5, facecolor="none", edgecolor="none"))
+plt.axvline(x=first_lockdown, linestyle='--', color='r'); 
+plt.annotate(xytext=(first_lockdown + datetime.timedelta(days=15), 15), 
+             xy=(first_lockdown, 12.5),
+             text='COVID-19 lockdown \nbegins',
              arrowprops=dict(color='red', arrowstyle='->'),
              bbox=dict(pad=5, facecolor="none", edgecolor="none"))
 
