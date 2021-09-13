@@ -77,7 +77,7 @@ plt.gca().set_ylim([0, 130000])
 plt.gca().legend(loc='best')
 plt.gca().set_xlabel('Year')
 plt.gca().set_ylabel('Visitors')
-plt.gca().set_title('Yearly Visitors for Selected Libraries')
+plt.gca().set_title('Yearly Visitors')
 
 # Get the number of visitors per month in each library
 by_library_and_month = counts.pivot_table('Count', index=counts.index.month,
@@ -108,7 +108,7 @@ plt.gca().set_ylim([0, 115000])
 plt.gca().legend(loc='best')
 plt.gca().set_xlabel('Month')
 plt.gca().set_ylabel('Visitors')
-plt.gca().set_title('Monthly Visitors for Selected Libraries')
+plt.gca().set_title('Total Monthly Visitors')
 
 # Get total weekly visits over time
 weekly_visits = counts['Count'].resample('W', kind='period').sum()

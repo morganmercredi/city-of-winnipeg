@@ -11,8 +11,10 @@ from sklearn.model_selection import GridSearchCV
 import matplotlib.pyplot as plt
 
 
+url = 'https://data.winnipeg.ca/api/views/h923-dxid/rows.csv?accessType=DOWNLOAD'
+
 # Load the trees dataset
-trees = pd.read_csv('tree_inventory.csv')
+trees = pd.read_csv(url)
 
 # Remove the 'x', 'y', and 'ded_tag_no' columns
 trees.drop(columns=['x', 'y', 'ded_tag_no'], inplace=True)
