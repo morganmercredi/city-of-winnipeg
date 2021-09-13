@@ -12,10 +12,11 @@ import datetime as datetime
 
 sns.set()
 
-file_path = '../../Sample Data Sets/Library_Incident_Reports.csv'
+# Link to the csv with library incident data
+url = 'https://data.winnipeg.ca/api/views/ffe7-mwdv/rows.csv?accessType=DOWNLOAD'
 
-# Read in the csv file
-incidents = pd.read_csv(file_path)
+# Download and read the csv using pandas
+incidents = pd.read_csv(url)
 
 # Clean up the table, set the date column as the index
 incidents = incidents.drop(columns='ID')
@@ -33,7 +34,7 @@ plt.figure()
 by_library.sort_values(ascending=True).plot(kind='barh')
 plt.gca().set_xlabel('Number of incidents')
 plt.gca().set_ylabel('Library')
-plt.gca().set_title('Reported Library Incidents (2012 - 2021)')
+plt.gca().set_title('Reported Library Incidents Since 2012')
 
 # Group incidents by seriousness
 print(incidents.groupby('Serious').size())
@@ -43,7 +44,7 @@ plt.figure()
 incidents[incidents.Serious == 'Yes'].groupby('Type').size().sort_values().plot(kind='barh')
 plt.gca().set_xlabel('Number of incidents')
 plt.gca().set_ylabel('Incident type')
-plt.gca().set_title('Serious Library Incidents (2012 - 2021)')
+plt.gca().set_title('Serious Library Incidents Since 2012')
 plt.gca().set_xticks(range(0, 25, 5))
 
 # Sort incidents by type
@@ -54,20 +55,23 @@ plt.figure()
 by_type.plot(kind='barh')
 plt.gca().set_xlabel('Number of incidents')
 plt.gca().set_ylabel('Incident type')
-plt.gca().set_title('Reported Library Incidents (2012 - 2021)')
+plt.gca().set_title('Reported Library Incidents Since 2012')
 
 # Get the number of incidents by year
 by_year = incidents.groupby(incidents.index.year).size()
 
-# Show the number of incidents each year
-plt.figure()
-by_year.plot(kind='bar')
-plt.gca().set_xlabel('Year')
-plt.gca().set_ylabel('Number of incidents')
-plt.gca().set_title('Total Yearly Library Incidents')
-
 # Show the incidents for the year 2012
 print(incidents.loc['2012']) # there are only two incidents recorded
+
+# Remove the year 2012 just to make things simpler (incomplete data)
+incidents = incidents.sort_index().loc['2013':'2021'] # sorted to avoid deprecation warning
+
+# Show the number of incidents each year
+plt.figure()
+by_year.loc['2013':'2021'].plot(kind='bar')
+plt.gca().set_xlabel('Year')
+plt.gca().set_ylabel('Number of incidents')
+plt.gca().set_title('Total Yearly Library Incidents') 
 
 # Get the number of incidents by month
 by_month = incidents.groupby(incidents.index.month).size()
@@ -92,28 +96,37 @@ plt.gca().set_ylabel('Number of incidents')
 plt.gca().set_title('Total Library Incidents by Day of Week')
 plt.gca().set_xticklabels(['Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat', 'Sun'])
 
+# Get the most common incident reported at each library
+most_common_incidents = incidents.groupby(['Location']).apply(lambda x: x.groupby('Type').size().idxmax())
+print(most_common_incidents)
+
+# Get the most common incident reported at each library each year
+# First, group the incidents by location and year
+grouped = incidents.groupby(['Location', incidents.index.year])
+
+# Next, for each group, find the number of incidents in each category
+# and find the type with the highest occurrence
+most_common_incidents_by_year = grouped.apply(lambda x: x.groupby('Type').size().idxmax())
+
+# Unstack for ease of viewing
+most_common_incidents_by_year = most_common_incidents_by_year.unstack(level=0).fillna('-')
+
+# Show the most common incidents per year at Millennium library
+print(most_common_incidents_by_year['Millennium'])
+
 # Get the number of incidents by year and type
 by_year_and_type = incidents.pivot_table(index=incidents.index.year,
                                          columns='Type',
                                          aggfunc='size').fillna(0)
 
 # Pick a few types of incidents and show how they've varied over the years
+incident_list = ['Inappropriate Behaviour', 'Intoxication', 'Assault']
+
 plt.figure()
-by_year_and_type[['Inappropriate Behaviour', 'Intoxication', 'Assault']].plot(kind='bar').legend(loc='best')
+by_year_and_type[incident_list].plot(kind='bar').legend(loc='best')
 plt.gca().set_xlabel('Year')
 plt.gca().set_ylabel('Number of incidents')
 plt.gca().set_title('Reported Library Incidents Over Time')
-
-# Get the most common incident reported at each library
-most_common_incidents = incidents.groupby(['Location']).apply(lambda x: x.groupby('Type').size().idxmax())
-print(most_common_incidents)
-
-# Get the most common incident reported at each library each year
-most_common_incidents_by_year = incidents.groupby(['Location',
-                                                   incidents.index.year]).apply(lambda x: x.groupby('Type').size().idxmax()).unstack(level=0)
-
-# Show the most common incidents per year at Millennium library
-print(most_common_incidents_by_year['Millennium'])
 
 # Get the number of incidents by year and library
 by_year_and_library = incidents.pivot_table(index=incidents.index.year,
@@ -121,8 +134,10 @@ by_year_and_library = incidents.pivot_table(index=incidents.index.year,
                                             aggfunc='size').fillna(0)
 
 # Pick a few libraries and show how incidents varied over the years
+library_list = ['St. Vital', 'Louis Riel', 'Cornish']
+
 plt.figure()
-by_year_and_library[['St. Vital', 'Louis Riel', 'Cornish']].plot(kind='bar').legend(loc='upper left')
+by_year_and_library[library_list].plot(kind='bar').legend(loc='upper left')
 plt.gca().set_xlabel('Year')
 plt.gca().set_ylabel('Number of incidents')
 plt.gca().set_title('Reported Library Incidents Over Time')
@@ -131,6 +146,18 @@ plt.gca().set_title('Reported Library Incidents Over Time')
 by_year_library_type = incidents.pivot_table(index=incidents.index.year,
                                              columns=['Location', 'Type'],
                                              aggfunc='size').fillna(0)
+
+# For Millennium library, pick a few types of incidents, and show how they've varied over time
+incident_list = ['Inappropriate Behaviour', 'Intoxication', 'Other']
+
+plt.figure()
+by_year_library_type['Millennium'][incident_list].plot(kind='bar').legend(loc='best')
+plt.gca().set_xlabel('Year')
+plt.gca().set_ylabel('Number of incidents')
+plt.gca().set_title('Reported Library Incidents Over Time (Millennium)')
+
+# NOTE: by_year_and_type = by_year_library_type.groupby(axis=1, level=1).sum()
+# by_year_and_library = by_year_library_type.groupby(axis=1, level=0).sum() 
 
 # Get the daily number of daily incidents
 daily_incidents = incidents.resample('D', kind='period').size()
@@ -165,22 +192,22 @@ fig = plt.figure(figsize=(10, 5))
 ax = daily_millennium_incidents.resample('W', kind='period').sum()['2017':'2019'].plot()
 ax.set_ylabel('Number of incidents')
 ax.set_ylim([0, 25]) 
-ax.set_title('Weekly Incidents at Millennium Library (2017 - 2019)')
+ax.set_title('Total Weekly Incidents at Millennium Library')
 plt.axvline(x=millennium_screening, linestyle='--', color='r'); 
-plt.annotate(xytext=(millennium_screening + datetime.timedelta(days=15), 20), 
+plt.annotate(xytext=(millennium_screening + datetime.timedelta(days=20), 20), 
              xy=(millennium_screening, 15.5),
              text='enhanced screening begins',
              arrowprops=dict(color='red', arrowstyle='->'),
              bbox=dict(pad=5, facecolor="none", edgecolor="none"))
 
-# Show the total weekly incidents going into 2021, with the effect of lockdowns
-fig = plt.figure(figsize=(10, 5))
-ax = daily_millennium_incidents.resample('W', kind='period').sum()['2017':'2021'].plot()
+# Show the total weekly incidents going from 2013 to 2021
+fig = plt.figure(figsize=(30, 5))
+ax = daily_millennium_incidents.resample('W', kind='period').sum()['2013':'2021'].plot()
 ax.set_ylabel('Number of incidents')
 ax.set_ylim([0, 25]) 
-ax.set_title('Weekly Incidents at Millennium Library (2017 - 2021)')
+ax.set_title('Total Weekly Incidents at Millennium Library')
 plt.axvline(x=millennium_screening, linestyle='--', color='r'); 
-plt.annotate(xytext=(millennium_screening + datetime.timedelta(days=15), 20), 
+plt.annotate(xytext=(millennium_screening + datetime.timedelta(days=20), 20), 
              xy=(millennium_screening, 15.5),
              text='enhanced screening \nbegins',
              arrowprops=dict(color='red', arrowstyle='->'),
@@ -188,7 +215,7 @@ plt.annotate(xytext=(millennium_screening + datetime.timedelta(days=15), 20),
 plt.axvline(x=first_lockdown, linestyle='--', color='r'); 
 plt.annotate(xytext=(first_lockdown + datetime.timedelta(days=15), 15), 
              xy=(first_lockdown, 12.5),
-             text='COVID-19 lockdown \nbegins',
+             text='COVID-19 pandemic \nbegins',
              arrowprops=dict(color='red', arrowstyle='->'),
              bbox=dict(pad=5, facecolor="none", edgecolor="none"))
 
