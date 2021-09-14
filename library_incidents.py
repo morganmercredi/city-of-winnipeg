@@ -23,6 +23,9 @@ incidents = incidents.drop(columns='ID')
 incidents = incidents.set_index('Date')
 incidents.index = pd.to_datetime(incidents.index)
 
+# Rename 'Other' incidents as 'Uncategorized'
+incidents['Type'] = incidents['Type'].str.replace('Other', 'Uncategorized')
+
 # Get the earliest recorded incident for each library
 print(incidents.groupby('Location').apply(lambda x: x.index.min()).sort_values())
 
@@ -148,7 +151,7 @@ by_year_library_type = incidents.pivot_table(index=incidents.index.year,
                                              aggfunc='size').fillna(0)
 
 # For Millennium library, pick a few types of incidents, and show how they've varied over time
-incident_list = ['Inappropriate Behaviour', 'Intoxication', 'Other']
+incident_list = ['Inappropriate Behaviour', 'Intoxication', 'Uncategorized']
 
 plt.figure()
 by_year_library_type['Millennium'][incident_list].plot(kind='bar').legend(loc='best')

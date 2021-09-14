@@ -1,5 +1,8 @@
 """
-Data exploration using the City of Winnipeg's "Transit Pass-ups" dataset
+Data exploration using the City of Winnipeg's "Transit Pass-ups" dataset.
+
+The datasets can be downloaded here:
+https://data.winnipeg.ca/api/views/mer2-irmb/
 """
 import numpy as np
 import pandas as pd
@@ -11,10 +14,10 @@ from shapely import wkt
 sns.set()
 
 # Path to file
-file_path = '../../Sample Data Sets/Transit_Pass-ups.csv'
+url = 'https://data.winnipeg.ca/api/views/mer2-irmb/rows.csv?accessType=DOWNLOAD'
 
 # Read the file
-passups = pd.read_csv(file_path)
+passups = pd.read_csv(url)
 
 # Convert times to datetimes
 passups['Time'] = pd.to_datetime(passups['Time'])
