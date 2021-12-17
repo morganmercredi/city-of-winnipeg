@@ -35,7 +35,7 @@ counts['Library'] = [" ".join(desc.split()[:-4]) for desc in counts['Description
 print(counts.groupby('Library').apply(lambda x: x.index.min()).sort_values())
 
 # Let's start the count in 2011 to make things fair
-counts = counts.loc['2011':]
+counts = counts.sort_index().loc['2011':]
 
 # Get the number of total counts per year in each library
 by_library_and_year = counts.groupby(['Library', counts.index.year])['Count'].sum()
@@ -53,7 +53,7 @@ plt.figure()
 by_library.plot(kind='barh')
 plt.gca().set_xlabel('Total visitors (millions)')
 plt.gca().set_ylabel('Library')
-plt.gca().set_title('Total Library Visitors Since 2011')
+plt.gca().set_title('Library Visitors Since 2011')
 plt.gca().set_xticks([0, 2000000, 4000000, 6000000, 8000000])
 plt.gca().set_xticklabels([0, 2, 4, 6, 8])
 
@@ -68,7 +68,7 @@ plt.figure()
 by_year.plot(kind='bar')
 plt.gca().set_xlabel('Year')
 plt.gca().set_ylabel('Visitors (millions)')
-plt.gca().set_title('Total Library Visitors')
+plt.gca().set_title('Yearly Library Visitors')
 plt.gca().set_yticks([0, 500000, 1000000, 1500000, 2000000, 2500000])
 plt.gca().set_yticklabels([0.0, 0.5, 1.0, 1.5, 2.0, 2.5])
 
@@ -81,7 +81,7 @@ plt.gca().set_ylim([0, 130000])
 plt.gca().legend(loc='best', title='Library')
 plt.gca().set_xlabel('Year')
 plt.gca().set_ylabel('Visitors')
-plt.gca().set_title('Total Yearly Visitors for Selected Libraries')
+plt.gca().set_title('Yearly Visitors for Selected Libraries')
 
 # Get the number of visitors per month in each library
 by_library_and_month = counts.pivot_table('Count', index=counts.index.month,
@@ -109,7 +109,7 @@ by_library_and_month[library_list].plot(kind='bar')
 plt.gca().set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
                            'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
 plt.gca().set_ylim([0, 115000])
-plt.gca().legend(loc='best')
+plt.gca().legend(loc='best', title='Library')
 plt.gca().set_xlabel('Month')
 plt.gca().set_ylabel('Visitors')
 plt.gca().set_title('Library Visitors by Month for Selected Libraries')
@@ -122,7 +122,7 @@ plt.figure()
 weekly_visits['2015'].plot()
 plt.gca().set_xlabel('Date')
 plt.gca().set_ylabel('Visitors')
-plt.gca().set_title('Total Weekly Library Visitors in 2015')
+plt.gca().set_title('Weekly Library Visitors in 2015')
 
 # Get a new table with all counts for a given library in a week merged into one row
 counts = counts.groupby([counts.index, 'Library'])
@@ -141,6 +141,6 @@ visits_per_day[['Millennium', 'St. Boniface']].plot(kind='bar')
 plt.gca().set_xlabel('Year')
 plt.gca().set_ylabel('Average visitors per day')
 plt.gca().set_title('Average Number of Visitors per Day')
-plt.gca().legend(loc='best')
+plt.gca().legend(loc='best', title='Library')
 
 plt.show()

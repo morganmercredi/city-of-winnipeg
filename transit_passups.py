@@ -13,7 +13,7 @@ from shapely import wkt
 
 sns.set()
 
-# Path to file
+# Path to transit file
 url = 'https://data.winnipeg.ca/api/views/mer2-irmb/rows.csv?accessType=DOWNLOAD'
 
 # Read the file
@@ -35,7 +35,7 @@ plt.gca().set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug
                     'Sep', 'Oct', 'Nov', 'Dec'])
 plt.gca().set_xlabel('Month')
 plt.gca().set_ylabel('Number of pass-ups')
-plt.gca().set_title('Total Monthly Pass-ups')
+plt.gca().set_title('Total Pass-ups by Month')
 
 # Get number of passups per year
 by_year = passups.groupby(passups.Time.dt.year).size()
@@ -56,7 +56,7 @@ by_day.plot(kind='bar')
 plt.gca().set_xticklabels(['Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat', 'Sun'])
 plt.gca().set_xlabel('Day of week')
 plt.gca().set_ylabel('Number of Pass-ups')
-plt.gca().set_title('Total Daily Pass-ups')
+plt.gca().set_title('Total Pass-ups by Day of Week')
 
 # Get the number of passups per day
 daily_passups = passups.set_index('Time').resample('D', kind='period').size()
@@ -102,7 +102,7 @@ plt.gca().set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug
                     'Sep', 'Oct', 'Nov', 'Dec'])
 plt.gca().set_xlabel('Month')
 plt.gca().set_ylabel('Number of pass-ups')
-plt.gca().set_title('Monthly Wheelchair Pass-ups')
+plt.gca().set_title('Wheelchair Pass-ups by Month')
 
 # Show number of passups per year
 wheelchair_by_year = wheelchair_passups.groupby(passups.Time.dt.year).size()
@@ -123,7 +123,7 @@ wheelchair_by_day.plot(kind='bar')
 plt.gca().set_xticklabels(['Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat', 'Sun'])
 plt.gca().set_xlabel('Day of week')
 plt.gca().set_ylabel('Number of Pass-ups')
-plt.gca().set_title('Total Daily Wheelchair Pass-ups')
+plt.gca().set_title('Wheelchair Pass-ups by Day of Week')
 
 # Get the number of wheelchair passups per day
 daily_wheelchair_passups = wheelchair_passups.set_index('Time').resample('D', kind='period').size()
@@ -133,14 +133,14 @@ plt.figure()
 daily_wheelchair_passups.plot()
 plt.gca().set_xlabel('Date')
 plt.gca().set_ylabel('Number of pass-ups')
-plt.gca().set_title('Total Daily Wheelchair Pass-ups')
+plt.gca().set_title('Daily Wheelchair Pass-ups')
 
 # Resample and plot weekly wheelchair passups
 plt.figure()
 daily_wheelchair_passups.resample('W', kind='period').sum().plot()
 plt.gca().set_xlabel('Date')
 plt.gca().set_ylabel('Number of pass-ups')
-plt.gca().set_title('Total Weekly Wheelchair Pass-ups')
+plt.gca().set_title('Weekly Wheelchair Pass-ups')
 
 # Create a 7-day rolling average for total daily wheelchair passups
 plt.figure()
@@ -172,24 +172,38 @@ passups['Location'] = passups['Location'].apply(wkt_loads)
 # Load into a geopandas dataframe
 gdf = gpd.GeoDataFrame(passups.copy(), geometry='Location')
 
-# Add the latitude and longitude for a closer look
-gdf['Longitude'] = pd.Series(dtype=float)
-gdf['Latitude'] = pd.Series(dtype=float)
-
-# Go through the coordinates and extract the latitude and longitude
-for (index, loc) in enumerate(gdf.Location):
-    if loc is not None:
-        gdf['Longitude'].iloc[index] = loc.x
-        gdf['Latitude'].iloc[index] = loc.y
-    else:
-        gdf['Longitude'].iloc[index] = None
-        gdf['Latitude'].iloc[index] = None
-
 # For simplicity, just remove all missing values
 # This could have been done earlier too
 gdf = gdf.dropna()
 
+gdf['Longitude'] = gdf.Location.x
+gdf['Latitude'] = gdf.Location.y
+
+# Add the latitude and longitude for a closer look
+#gdf['Longitude'] = pd.Series(dtype=float)
+#gdf['Latitude'] = pd.Series(dtype=float)
+#
+# Go through the coordinates and extract the latitude and longitude
+#for (index, loc) in enumerate(gdf.Location):
+#    if loc is not None:
+#        gdf['Longitude'].iloc[index] = loc.x
+#        gdf['Latitude'].iloc[index] = loc.y
+#    else:
+#        gdf['Longitude'].iloc[index] = None
+#        gdf['Latitude'].iloc[index] = None
+
 # There are a few zero latitude values. Get rid of them.
-gdf = gdf[gdf['Latitude'] != 0]
+gdf = gdf[~np.isclose(gdf.Latitude, 0)]
+
+# Path to Winnipeg boundary file
+url2 = 'https://data.winnipeg.ca/api/views/2nyq-f444/rows.csv?accessType=DOWNLOAD'
+
+# Load the file and convert to a GeoDataFrame
+wpg_borders = pd.read_csv(url2)
+wpg_borders['the_geom'] = wpg_borders['the_geom'].apply(wkt_loads)
+wpg_borders = gpd.GeoDataFrame(wpg_borders.copy(), geometry='the_geom')
+
+# Remove data points that are outside the city of Winnipeg boundary
+gdf = gdf[gdf.within(wpg_borders.iloc[0]['the_geom'])]
 
 plt.show()
