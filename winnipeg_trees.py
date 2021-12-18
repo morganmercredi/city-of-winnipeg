@@ -85,7 +85,7 @@ lat_lon = trees['the_geom'].apply(get_lat_lon)
 trees[['lat', 'lon']] = lat_lon.to_list()
 
 # Use kernel density estimation on the tree locations
-# Do a grid search over a few different bandwidths (this takes an hour of my PC)
+# Do a grid search over a few different bandwidths (this takes an hour on my PC)
 bandwidths = [0.0001, 0.0005, 0.001]
 grid = GridSearchCV(KernelDensity(kernel='gaussian'), {'bandwidth': bandwidths},
                     cv=3, n_jobs=-1)

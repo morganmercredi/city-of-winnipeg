@@ -35,7 +35,7 @@ plt.gca().set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug
                     'Sep', 'Oct', 'Nov', 'Dec'])
 plt.gca().set_xlabel('Month')
 plt.gca().set_ylabel('Number of pass-ups')
-plt.gca().set_title('Total Pass-ups by Month')
+plt.gca().set_title('Transit Pass-ups by Month')
 
 # Get number of passups per year
 by_year = passups.groupby(passups.Time.dt.year).size()
@@ -45,7 +45,7 @@ plt.figure()
 by_year.plot(kind='bar')
 plt.gca().set_xlabel('Year')
 plt.gca().set_ylabel('Number of pass-ups')
-plt.gca().set_title('Total Yearly Pass-ups')
+plt.gca().set_title('Yearly Transit Pass-ups')
 
 # Show number of passups by day of week
 by_day = passups.groupby(passups.Time.dt.dayofweek).size()
@@ -56,7 +56,7 @@ by_day.plot(kind='bar')
 plt.gca().set_xticklabels(['Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat', 'Sun'])
 plt.gca().set_xlabel('Day of week')
 plt.gca().set_ylabel('Number of Pass-ups')
-plt.gca().set_title('Total Pass-ups by Day of Week')
+plt.gca().set_title('Transit Pass-ups by Day of Week')
 
 # Get the number of passups per day
 daily_passups = passups.set_index('Time').resample('D', kind='period').size()
@@ -66,14 +66,14 @@ plt.figure()
 daily_passups.plot()
 plt.gca().set_xlabel('Date')
 plt.gca().set_ylabel('Number of pass-ups')
-plt.gca().set_title('Total Daily Pass-ups')
+plt.gca().set_title('Daily Transit Pass-ups')
 
 # Resample and plot weekly passups
 plt.figure()
 daily_passups.resample('W', kind='period').sum().plot()
 plt.gca().set_xlabel('Date')
 plt.gca().set_ylabel('Number of pass-ups')
-plt.gca().set_title('Total Weekly Pass-ups')
+plt.gca().set_title('Weekly Transit Pass-ups')
 
 # Create a 7-day rolling average for total daily passups
 plt.figure()
@@ -173,9 +173,9 @@ passups['Location'] = passups['Location'].apply(wkt_loads)
 gdf = gpd.GeoDataFrame(passups.copy(), geometry='Location')
 
 # For simplicity, just remove all missing values
-# This could have been done earlier too
 gdf = gdf.dropna()
 
+# Add the latitude and longitude for a closer look
 gdf['Longitude'] = gdf.Location.x
 gdf['Latitude'] = gdf.Location.y
 
@@ -191,10 +191,11 @@ gdf['Latitude'] = gdf.Location.y
 #    else:
 #        gdf['Longitude'].iloc[index] = None
 #        gdf['Latitude'].iloc[index] = None
-
+#
 # There are a few zero latitude values. Get rid of them.
-gdf = gdf[~np.isclose(gdf.Latitude, 0)]
+#gdf = gdf[~np.isclose(gdf.Latitude, 0)]
 
+# Let's try to eliminate points outside of Winnipeg
 # Path to Winnipeg boundary file
 url2 = 'https://data.winnipeg.ca/api/views/2nyq-f444/rows.csv?accessType=DOWNLOAD'
 
@@ -205,5 +206,23 @@ wpg_borders = gpd.GeoDataFrame(wpg_borders.copy(), geometry='the_geom')
 
 # Remove data points that are outside the city of Winnipeg boundary
 gdf = gdf[gdf.within(wpg_borders.iloc[0]['the_geom'])]
+
+# Show where the transit pass-ups are happening in Winnipeg
+plt.figure()
+gdf.plot(alpha=0.05, markersize=0.5)
+plt.gca().set_axis_off()
+plt.gca().set_title('Winnipeg Transit Pass-ups')
+
+# Show where full bus pass-ups happen
+plt.figure()
+gdf[gdf['Pass-Up Type'] == 'Full Bus Pass-Up'].plot(alpha=0.05, markersize=0.5)
+plt.gca().set_axis_off()
+plt.gca().set_title('Full Bus Pass-ups')
+
+# Show where wheelchair pass-ups happen
+plt.figure()
+gdf[gdf['Pass-Up Type'] == 'Wheelchair User Pass-Up'].plot(alpha=0.05, markersize=0.5)
+plt.gca().set_axis_off()
+plt.gca().set_title('Wheelchair User Pass-ups')
 
 plt.show()
