@@ -4,6 +4,7 @@ Simple data exploration using the City of Winnipeg's "Library Incidents" dataset
 The dataset can be downloaded here: 
 https://data.winnipeg.ca/Libraries/Library-Incident-Reports/ffe7-mwdv/data    
 """
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -98,6 +99,17 @@ plt.gca().set_xlabel('Day of week')
 plt.gca().set_ylabel('Number of incidents')
 plt.gca().set_title('Library Incidents by Day of Week')
 plt.gca().set_xticklabels(['Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat', 'Sun'])
+
+# Get the number of incidents by time of day
+by_time = incidents.groupby(incidents.index.time).size()
+
+# Show the incidents by time of occurrence
+plt.figure()
+hourly_ticks = 4 * 60 * 60 * np.arange(6)
+by_time.plot(xticks=hourly_ticks)
+plt.gca().set_xlabel('Time of Day')
+plt.gca().set_ylabel('Number of incidents')
+plt.gca().set_title('Library Incidents by Time of Occurrence')
 
 # Get the most common incident reported at each library
 most_common_incidents = incidents.groupby(['Location']).apply(lambda x: x.groupby('Type').size().idxmax())
