@@ -25,6 +25,19 @@ passups['Time'] = pd.to_datetime(passups['Time'])
 # Show number of pass-up types
 print(passups.groupby('Pass-Up Type').size())
 
+# Show which routes have the most pass-ups
+print(passups.groupby('Route Name').size().sort_values(ascending=False)[:10])
+
+# Get pass-ups by time of day
+by_time = passups.groupby(passups.Time.dt.time).size()
+
+# Plot the time of day figures
+plt.figure()
+by_time.plot()
+plt.gca().set_xlabel('Time of day')
+plt.gca().set_ylabel('Number of pass-ups')
+plt.gca().set_title('Transit Pass-ups by Time of Day')
+
 # Get number of passups per month
 by_month = passups.groupby(passups.Time.dt.month).size()
 
