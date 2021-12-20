@@ -6,21 +6,73 @@ https://data.winnipeg.ca/Parks/Tree-Inventory-Map/xyma-gm38
 """
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 from sklearn.neighbors import KernelDensity
 from sklearn.model_selection import GridSearchCV
+from shapely import wkt
 import matplotlib.pyplot as plt
+import seaborn as sns
 
+sns.set()
 
 url = 'https://data.winnipeg.ca/api/views/h923-dxid/rows.csv?accessType=DOWNLOAD'
+ward_url = 'https://data.winnipeg.ca/api/views/t4cg-yaxs/rows.csv?accessType=DOWNLOAD'
+nbhd_url = 'https://data.winnipeg.ca/api/views/xaux-29zr/rows.csv?accessType=DOWNLOAD'
 
 # Load the trees dataset
 trees = pd.read_csv(url)
+
+# Load the ward boundaries
+wards = pd.read_csv(ward_url)
+
+# Drop some columsn
+wards = wards.drop(columns=['Councillor', 'Phone', 'Asst', 'AsstPhone', 'Community',
+                   'Clerk', 'ClerkPhone', 'Website'])
+
+# Load the neighbourhood boundaries
+nbhd = pd.read_csv(nbhd_url)
+
+# Convert the GPS data to shapely objects
+# Check if the GPS data is valid first
+def wkt_loads(x):
+    try:
+        return wkt.loads(x)
+    except Exception:
+        return None
+
+trees['the_geom'] = trees['the_geom'].apply(wkt_loads)
+nbhd['the_geom'] = nbhd['the_geom'].apply(wkt_loads)
+wards['the_geom'] = wards['the_geom'].apply(wkt_loads)
+
+# Convert neighbourhood and ward data to GeoDataFrames
+nbhd_gdf = gpd.GeoDataFrame(nbhd.copy(), geometry='the_geom')
+wards_gdf = gpd.GeoDataFrame(wards.copy(), geometry='the_geom')
+
+# Set the crs to lat/lon
+nbhd_gdf = nbhd_gdf.set_crs("EPSG:4326")
+wards_gdf = wards_gdf.set_crs("EPSG:4326")
+
+# Convert to a projected crs for Manitoba (approximately)
+nbhd_gdf = nbhd_gdf.to_crs('EPSG:32614')
+wards_gdf = wards_gdf.to_crs('EPSG:32614')
+
+# Get the area of the neighbourhoods and wards (in square kilometres)
+wards_gdf['Area'] = wards_gdf.area/1e6
+nbhd_gdf['Area'] = nbhd_gdf.area/1e6
 
 # Remove the 'x', 'y', and 'ded_tag_no' columns
 trees.drop(columns=['x', 'y', 'ded_tag_no'], inplace=True)
 
 # Get the number of trees per ward, sorted
 trees_by_ward = trees.groupby('ward').size().sort_values(ascending=False)
+
+# The wards from the tree inventory and the ward dataset match
+# Merge the trees_by_ward data to the ward dataset
+wards_gdf = wards_gdf.merge(trees_by_ward.rename('Number of trees'),
+                            left_on='Name', right_index=True)
+
+# Add a column for the density of trees per ward
+wards_gdf['Density'] = wards_gdf['Number of trees'].div(wards_gdf['Area'])
 
 # Get the number of trees per neighbourhood, sorted
 trees_by_neighbourhood = trees.groupby('nbhd').size().sort_values(ascending=False)

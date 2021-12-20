@@ -105,8 +105,9 @@ by_time = incidents.groupby(incidents.index.time).size()
 
 # Show the incidents by time of occurrence
 plt.figure()
-hourly_ticks = 4 * 60 * 60 * np.arange(6)
+hourly_ticks = 4*60*60*np.arange(6)
 by_time.plot(xticks=hourly_ticks)
+plt.gca().set_xlim([0, 4*60*60*6])
 plt.gca().set_xlabel('Time of Day')
 plt.gca().set_ylabel('Number of incidents')
 plt.gca().set_title('Library Incidents by Time of Occurrence')
