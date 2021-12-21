@@ -27,7 +27,7 @@ wards = pd.read_csv(ward_url)
 
 # Drop some columsn
 wards = wards.drop(columns=['Councillor', 'Phone', 'Asst', 'AsstPhone', 'Community',
-                   'Clerk', 'ClerkPhone', 'Website'])
+                   'Clerk', 'ClerkPhone', 'Website', 'Number'])
 
 # Load the neighbourhood boundaries
 nbhd = pd.read_csv(nbhd_url)
@@ -46,18 +46,18 @@ wards['the_geom'] = wards['the_geom'].apply(wkt_loads)
 
 # Convert neighbourhood and ward data to GeoDataFrames
 nbhd_gdf = gpd.GeoDataFrame(nbhd.copy(), geometry='the_geom')
-wards_gdf = gpd.GeoDataFrame(wards.copy(), geometry='the_geom')
+wards = gpd.GeoDataFrame(wards.copy(), geometry='the_geom')
 
 # Set the crs to lat/lon
 nbhd_gdf = nbhd_gdf.set_crs("EPSG:4326")
-wards_gdf = wards_gdf.set_crs("EPSG:4326")
+wards = wards.set_crs("EPSG:4326")
 
 # Convert to a projected crs for Manitoba (approximately)
 nbhd_gdf = nbhd_gdf.to_crs('EPSG:32614')
-wards_gdf = wards_gdf.to_crs('EPSG:32614')
+wards = wards.to_crs('EPSG:32614')
 
 # Get the area of the neighbourhoods and wards (in square kilometres)
-wards_gdf['Area'] = wards_gdf.area/1e6
+wards['Area'] = wards.area/1e6
 nbhd_gdf['Area'] = nbhd_gdf.area/1e6
 
 # Remove the 'x', 'y', and 'ded_tag_no' columns
@@ -68,14 +68,46 @@ trees_by_ward = trees.groupby('ward').size().sort_values(ascending=False)
 
 # The wards from the tree inventory and the ward dataset match
 # Merge the trees_by_ward data to the ward dataset
-wards_gdf = wards_gdf.merge(trees_by_ward.rename('Number of trees'),
+wards = wards.merge(trees_by_ward.rename('Number of trees'),
                             left_on='Name', right_index=True)
 
 # Add a column for the density of trees per ward
-wards_gdf['Density'] = wards_gdf['Number of trees'].div(wards_gdf['Area'])
+wards['Density'] = wards['Number of trees'].div(wards['Area'])
+
+# Plot the tree density over the ward map
+plt.figure();
+wards.plot('Density', legend=True, cmap='Greens');
+plt.gca().set_title('Tree Density by Ward (km$^{-2}$)');
+plt.axis('off');
 
 # Get the number of trees per neighbourhood, sorted
 trees_by_neighbourhood = trees.groupby('nbhd').size().sort_values(ascending=False)
+
+# Let's check if the city neighbourhood list matches the neighbourhood list
+# from the tree inventory data
+# The neighbourhood in the tree inventory are all caps. Change to lower case.
+nbhd_gdf.Name = nbhd_gdf.Name.str.lower()
+trees_by_neighbourhood.index = trees_by_neighbourhood.index.str.lower()
+
+# Get the neighbourhoods in the tree inventory that aren't in the city neighbourhood list
+print(trees_by_neighbourhood[~trees_by_neighbourhood.index.isin(nbhd_gdf.Name)].index.to_list())
+
+# Get the neighbourhoods in the city neighbourhood list that aren't in the tree inventory data
+print(nbhd_gdf[~nbhd_gdf.Name.isin(trees_by_neighbourhood.index)].Name.to_list())
+
+# So, five neighbourhoods aren't in the tree inventory dataset
+# Merge the trees_by_neighbourhood data to the city neighbourhood dataset
+nbhd_gdf = nbhd_gdf.merge(trees_by_neighbourhood.rename('Number of trees'),
+                            left_on='Name', right_index=True)
+
+# Add a column for the density of trees per neighbourhood
+nbhd_gdf['Density'] = nbhd_gdf['Number of trees'].div(nbhd_gdf['Area'])
+
+# Plot the tree density over the neighbourhood map
+plt.figure();
+nbhd_gdf.plot('Density', legend=True, cmap='Greens');
+plt.gca().set_title('Tree Density by Neighbourhood (km$^{-2}$)');
+plt.axis('off');
 
 def get_most_treed_nbhds(group, n=5):
     """Get the n-most treed neighbourhoods in a group."""
