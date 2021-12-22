@@ -66,6 +66,7 @@ by_year = by_library_and_year.sum(axis=1)
 # Show the total visitors per year
 plt.figure()
 by_year.plot(kind='bar')
+plt.xticks(rotation = 45)
 plt.gca().set_xlabel('Year')
 plt.gca().set_ylabel('Number of visitors (millions)')
 plt.gca().set_title('Yearly Library Visitors')
@@ -77,6 +78,7 @@ library_list = ['St. Boniface', 'St. Vital']
 
 plt.figure()
 by_library_and_year[library_list].plot(kind='bar')
+plt.xticks(rotation = 45)
 plt.gca().set_ylim([0, 130000])
 plt.gca().legend(loc='best', title='Library')
 plt.gca().set_xlabel('Year')
@@ -94,7 +96,7 @@ by_month = by_library_and_month.sum(axis=1)
 plt.figure()
 by_month.plot(kind='bar')
 plt.gca().set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
-                           'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
+                           'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], rotation = 45)
 plt.gca().set_xlabel('Month')
 plt.gca().set_ylabel('Number of visitors (millions)')
 plt.gca().set_title('Library Visitors by Month')
@@ -107,7 +109,7 @@ library_list = ['St. Boniface', 'Cornish']
 plt.figure()
 by_library_and_month[library_list].plot(kind='bar')
 plt.gca().set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
-                           'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
+                           'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], rotation = 45)
 plt.gca().set_ylim([0, 115000])
 plt.gca().legend(loc='best', title='Library')
 plt.gca().set_xlabel('Month')
@@ -138,6 +140,7 @@ visits_per_day = by_library_and_year/days_open
 # Show the average number of visitors per open day for St. Boniface and Millennium libraries
 plt.figure()
 visits_per_day[['Millennium', 'St. Boniface']].plot(kind='bar')
+plt.xticks(rotation = 45)
 plt.gca().set_xlabel('Year')
 plt.gca().set_ylabel('Average number of visitors per day')
 plt.gca().set_title('Average Number of Visitors per Day')

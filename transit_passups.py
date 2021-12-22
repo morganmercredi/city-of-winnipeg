@@ -39,6 +39,19 @@ plt.gca().set_xlabel('Time of Day')
 plt.gca().set_ylabel('Number of pass-ups')
 plt.gca().set_title('Transit Pass-ups by Time of Occurrence')
 
+# Even better, group the pass-ups by hour of day
+by_hour = passups.groupby(passups.Time.dt.hour).size()
+
+# Show the hourly figures
+plt.figure()
+by_hour.plot()
+plt.gca().set_xticks([0, 4, 8, 12, 16, 20])
+plt.gca().set_xlim([0, 23])
+plt.gca().set_xticklabels(['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'])
+plt.gca().set_xlabel('Time of day')
+plt.gca().set_ylabel('Number of pass-ups')
+plt.gca().set_title('Transit Pass-ups by Hour')
+
 # Get number of passups per month
 by_month = passups.groupby(passups.Time.dt.month).size()
 
