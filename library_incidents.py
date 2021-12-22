@@ -112,6 +112,19 @@ plt.gca().set_xlabel('Time of Day')
 plt.gca().set_ylabel('Number of incidents')
 plt.gca().set_title('Library Incidents by Time of Occurrence')
 
+# Even better, group the incidents by hour of day
+by_hour = incidents.groupby(incidents.index.hour).size()
+
+# Show the hourly figures
+plt.figure()
+by_hour.plot()
+plt.gca().set_xticks([0, 4, 8, 12, 16, 20])
+plt.gca().set_xlim([0, 23])
+plt.gca().set_xticklabels(['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'])
+plt.gca().set_xlabel('Time of day')
+plt.gca().set_ylabel('Number of incidents')
+plt.gca().set_title('Library Incidents by Time of Occurrence')
+
 # Get the most common incident reported at each library
 most_common_incidents = incidents.groupby(['Location']).apply(lambda x: x.groupby('Type').size().idxmax())
 print(most_common_incidents)

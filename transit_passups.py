@@ -224,10 +224,10 @@ gdf['Latitude'] = gdf.Location.y
 
 # Let's try to eliminate points outside of Winnipeg
 # Path to Winnipeg boundary file
-url2 = 'https://data.winnipeg.ca/api/views/2nyq-f444/rows.csv?accessType=DOWNLOAD'
+city_map = 'https://data.winnipeg.ca/api/views/2nyq-f444/rows.csv?accessType=DOWNLOAD'
 
 # Load the file and convert to a GeoDataFrame
-wpg_borders = pd.read_csv(url2)
+wpg_borders = pd.read_csv(city_map)
 wpg_borders['the_geom'] = wpg_borders['the_geom'].apply(wkt_loads)
 wpg_borders = gpd.GeoDataFrame(wpg_borders.copy(), geometry='the_geom')
 
