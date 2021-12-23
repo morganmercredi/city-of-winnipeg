@@ -33,7 +33,7 @@ by_time = passups.groupby(passups.Time.dt.time).size()
 
 # Plot the time of day figures
 plt.figure()
-hourly_ticks = 4 * 60 * 60 * np.arange(6)
+hourly_ticks = 4*60*60*np.arange(6)
 by_time.plot(xticks=hourly_ticks)
 plt.gca().set_xlabel('Time of Day')
 plt.gca().set_ylabel('Number of pass-ups')
@@ -48,7 +48,7 @@ by_hour.plot()
 plt.gca().set_xticks([0, 4, 8, 12, 16, 20])
 plt.gca().set_xlim([0, 23])
 plt.gca().set_xticklabels(['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'])
-plt.gca().set_xlabel('Time of day')
+plt.gca().set_xlabel('Hour of occurrence')
 plt.gca().set_ylabel('Number of pass-ups')
 plt.gca().set_title('Transit Pass-ups by Hour')
 
@@ -198,6 +198,7 @@ passups['Location'] = passups['Location'].apply(wkt_loads)
 
 # Load into a geopandas dataframe
 gdf = gpd.GeoDataFrame(passups.copy(), geometry='Location')
+gdf = gdf.set_crs('EPSG:4326')
 
 # For simplicity, just remove all missing values
 gdf = gdf.dropna()
@@ -205,22 +206,6 @@ gdf = gdf.dropna()
 # Add the latitude and longitude for a closer look
 gdf['Longitude'] = gdf.Location.x
 gdf['Latitude'] = gdf.Location.y
-
-# Add the latitude and longitude for a closer look
-#gdf['Longitude'] = pd.Series(dtype=float)
-#gdf['Latitude'] = pd.Series(dtype=float)
-#
-# Go through the coordinates and extract the latitude and longitude
-#for (index, loc) in enumerate(gdf.Location):
-#    if loc is not None:
-#        gdf['Longitude'].iloc[index] = loc.x
-#        gdf['Latitude'].iloc[index] = loc.y
-#    else:
-#        gdf['Longitude'].iloc[index] = None
-#        gdf['Latitude'].iloc[index] = None
-#
-# There are a few zero latitude values. Get rid of them.
-#gdf = gdf[~np.isclose(gdf.Latitude, 0)]
 
 # Let's try to eliminate points outside of Winnipeg
 # Path to Winnipeg boundary file
@@ -230,6 +215,7 @@ city_map = 'https://data.winnipeg.ca/api/views/2nyq-f444/rows.csv?accessType=DOW
 wpg_borders = pd.read_csv(city_map)
 wpg_borders['the_geom'] = wpg_borders['the_geom'].apply(wkt_loads)
 wpg_borders = gpd.GeoDataFrame(wpg_borders.copy(), geometry='the_geom')
+wpg_borders = wpg_borders.set_crs('EPSG:4326')
 
 # Remove data points that are outside the city of Winnipeg boundary
 gdf = gdf[gdf.within(wpg_borders.iloc[0]['the_geom'])]

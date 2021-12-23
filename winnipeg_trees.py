@@ -44,13 +44,15 @@ trees['the_geom'] = trees['the_geom'].apply(wkt_loads)
 nbhd['the_geom'] = nbhd['the_geom'].apply(wkt_loads)
 wards['the_geom'] = wards['the_geom'].apply(wkt_loads)
 
-# Convert neighbourhood and ward data to GeoDataFrames
+# Convert neighbourhood, ward, and tree inventory data to GeoDataFrames
 nbhd = gpd.GeoDataFrame(nbhd.copy(), geometry='the_geom')
 wards = gpd.GeoDataFrame(wards.copy(), geometry='the_geom')
+trees = gpd.GeoDataFrame(trees.copy(), geometry='the_geom')
 
 # Set the crs to lat/lon
 nbhd = nbhd.set_crs("EPSG:4326")
 wards = wards.set_crs("EPSG:4326")
+trees = trees.set_crs("EPSG:4326")
 
 # Convert to a projected crs for Manitoba (approximately)
 nbhd = nbhd.to_crs('EPSG:32614')
@@ -154,26 +156,6 @@ trees[trees['common'] == 'American Elm']['dbh'].hist(bins=100, range=(0, 125))
 plt.gca().set_xlabel('Diameter')
 plt.gca().set_ylabel('Number of occurrences')
 plt.gca().set_title('Distribution of American Elm Diameters')
-
-# Here, I try to extract latitudes and longitues from the point column
-# This was before I found the Shapely and Geopandas packages
-#def get_lat_lon(geom):
-#    """Extract latitude and longitude from geometry column"""
-#    geom = geom.split()
-#    lat = float(geom[2].rstrip(')'))
-#    lon = float(geom[1].lstrip('('))
-#    return lat, lon
-#
-# Extract the latitudes and longitudes from the geometry column
-# This is a series of tuples
-#lat_lon = trees['the_geom'].apply(get_lat_lon)
-#
-# Split the tuples into separate columns in the tree table
-#trees[['lat', 'lon']] = lat_lon.to_list()
-
-# Convert the tree dataset into a GeoDataFrame
-trees = gpd.GeoDataFrame(trees.copy(), geometry='the_geom')
-trees = trees.set_crs("EPSG:4326")
 
 # Create separate columns for latitude and longitude
 trees['Longitude'] = trees.the_geom.x

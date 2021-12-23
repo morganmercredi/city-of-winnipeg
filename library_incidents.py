@@ -48,7 +48,7 @@ plt.figure()
 incidents[incidents.Serious == 'Yes'].groupby('Type').size().sort_values().plot(kind='barh')
 plt.gca().set_xlabel('Number of incidents')
 plt.gca().set_ylabel('Incident type')
-plt.gca().set_title('Serious Library Incidents Since 2012')
+plt.gca().set_title('Library Incidents Listed as "Serious" Since 2012')
 plt.gca().set_xticks(range(0, 25, 5))
 
 # Sort incidents by type
@@ -123,7 +123,7 @@ plt.gca().set_xlim([0, 23])
 plt.gca().set_xticklabels(['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'])
 plt.gca().set_xlabel('Time of day')
 plt.gca().set_ylabel('Number of incidents')
-plt.gca().set_title('Library Incidents by Time of Occurrence')
+plt.gca().set_title('Hourly Library Incidents')
 
 # Get the most common incident reported at each library
 most_common_incidents = incidents.groupby(['Location']).apply(lambda x: x.groupby('Type').size().idxmax())
