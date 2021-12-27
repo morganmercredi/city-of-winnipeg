@@ -220,22 +220,36 @@ wpg_borders = wpg_borders.set_crs('EPSG:4326')
 # Remove data points that are outside the city of Winnipeg boundary
 gdf = gdf[gdf.within(wpg_borders.iloc[0]['the_geom'])]
 
-# Show where the transit pass-ups are happening in Winnipeg
-plt.figure()
-gdf.plot(alpha=0.05, markersize=0.5)
-plt.gca().set_axis_off()
-plt.gca().set_title('Winnipeg Transit Pass-ups')
+# Show where transit pass-ups happen in Winnipeg
+ax = wpg_borders.boundary.plot(edgecolor='k')
+gdf.plot(markersize=0.05, ax=ax)
+ax.axis('off')
+ax.set_title('Winnipeg Transit Pass-ups')
 
 # Show where full bus pass-ups happen
-plt.figure()
-gdf[gdf['Pass-Up Type'] == 'Full Bus Pass-Up'].plot(alpha=0.05, markersize=0.5)
-plt.gca().set_axis_off()
-plt.gca().set_title('Full Bus Pass-ups')
+ax = wpg_borders.boundary.plot(edgecolor='k')
+gdf.plot(markersize=0.05, ax=ax)
+gdf[gdf['Pass-Up Type'] == 'Full Bus Pass-Up'].plot(alpha=0.05, color='r', markersize=0.05)
+ax.axis('off')
+ax.set_title('Full Bus Pass-ups')
 
 # Show where wheelchair pass-ups happen
-plt.figure()
-gdf[gdf['Pass-Up Type'] == 'Wheelchair User Pass-Up'].plot(alpha=0.05, markersize=0.5)
-plt.gca().set_axis_off()
+ax = wpg_borders.boundary.plot(edgecolor='k')
+gdf.plot(markersize=0.05, ax=ax)
+gdf[gdf['Pass-Up Type'] == 'Wheelchair User Pass-Up'].plot(markersize=0.05, color='r', ax=ax)
+ax.axis('off')
 plt.gca().set_title('Wheelchair User Pass-ups')
+
+# Show both types of pass-ups on one map
+ax = wpg_borders.boundary.plot(edgecolor='k', figsize=(10, 6))
+gdf[gdf['Pass-Up Type'] == 'Full Bus Pass-Up'].plot(markersize=0.05, alpha=0.2, ax=ax)
+gdf[gdf['Pass-Up Type'] == 'Wheelchair User Pass-Up'].plot(markersize=0.05, alpha=0.2,
+                                                           color='r', ax=ax)
+ax.axis('off')
+for colour, label in zip(['r', 'b'], ['Wheelchair User', 'Full Bus']):
+    plt.scatter([], [], c=colour, label=label)
+ax.legend(frameon=False, title='Pass-up Type',
+          loc='lower right', fontsize='small')
+ax.set_title('Winnipeg Transit Pass-ups')
 
 plt.show()

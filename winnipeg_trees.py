@@ -15,21 +15,27 @@ import seaborn as sns
 
 sns.set()
 
-url = 'https://data.winnipeg.ca/api/views/h923-dxid/rows.csv?accessType=DOWNLOAD'
+
+tree_url = 'https://data.winnipeg.ca/api/views/h923-dxid/rows.csv?accessType=DOWNLOAD'
 ward_url = 'https://data.winnipeg.ca/api/views/t4cg-yaxs/rows.csv?accessType=DOWNLOAD'
 nbhd_url = 'https://data.winnipeg.ca/api/views/xaux-29zr/rows.csv?accessType=DOWNLOAD'
 
 # Load the trees dataset
-trees = pd.read_csv(url)
+trees = pd.read_csv(tree_url)
+
+# Remove the 'x', 'y', and 'ded_tag_no' columns
+trees = trees.drop(columns=['x', 'y', 'ded_tag_no'])
 
 # Load the ward boundaries
+# We'll need this for calculating tree density
 wards = pd.read_csv(ward_url)
 
-# Drop some columsn
+# Drop some columns
 wards = wards.drop(columns=['Councillor', 'Phone', 'Asst', 'AsstPhone', 'Community',
                    'Clerk', 'ClerkPhone', 'Website', 'Number'])
 
 # Load the neighbourhood boundaries
+# We'll need this for calculating tree density
 nbhd = pd.read_csv(nbhd_url)
 
 # Convert the GPS data to shapely objects
@@ -49,7 +55,7 @@ nbhd = gpd.GeoDataFrame(nbhd.copy(), geometry='the_geom')
 wards = gpd.GeoDataFrame(wards.copy(), geometry='the_geom')
 trees = gpd.GeoDataFrame(trees.copy(), geometry='the_geom')
 
-# Set the crs to lat/lon
+# Set the crs to latitude/longitude
 nbhd = nbhd.set_crs("EPSG:4326")
 wards = wards.set_crs("EPSG:4326")
 trees = trees.set_crs("EPSG:4326")
@@ -61,9 +67,6 @@ wards = wards.to_crs('EPSG:32614')
 # Get the area of the neighbourhoods and wards (in square kilometres)
 wards['Area'] = wards.area/1e6
 nbhd['Area'] = nbhd.area/1e6
-
-# Remove the 'x', 'y', and 'ded_tag_no' columns
-trees.drop(columns=['x', 'y', 'ded_tag_no'], inplace=True)
 
 # Get the number of trees per ward, sorted
 trees_by_ward = trees.groupby('ward').size().sort_values(ascending=False)
@@ -87,7 +90,7 @@ trees_by_neighbourhood = trees.groupby('nbhd').size().sort_values(ascending=Fals
 
 # Let's check if the city neighbourhood list matches the neighbourhood list
 # from the tree inventory data
-# The neighbourhood in the tree inventory are all caps. Change to lower case.
+# The neighbourhoods in the tree inventory are in all caps. Change to lower case.
 nbhd.Name = nbhd.Name.str.lower()
 trees_by_neighbourhood.index = trees_by_neighbourhood.index.str.lower()
 
@@ -172,16 +175,23 @@ print(grid.best_params_) # 0.0005 is the best choice
 # Choose the best model
 model = grid.best_estimator_
 
-# Overlay the tree inventory with a city of Winnipeg boundary map
+# Overlay the tree distribution on a city of Winnipeg boundary map
 # Path to Winnipeg boundary file
-city_map = 'https://data.winnipeg.ca/api/views/2nyq-f444/rows.csv?accessType=DOWNLOAD'
+city_map_url = 'https://data.winnipeg.ca/api/views/2nyq-f444/rows.csv?accessType=DOWNLOAD'
 
 # Load the file and convert to a GeoDataFrame
-wpg_borders = pd.read_csv(city_map)
+wpg_borders = pd.read_csv(city_map_url)
 wpg_borders['the_geom'] = wpg_borders['the_geom'].apply(wkt_loads)
 wpg_borders = gpd.GeoDataFrame(wpg_borders.copy(), geometry='the_geom')
 wpg_borders = wpg_borders.set_crs('EPSG:4326')
-ax = wpg_borders.boundary.plot()
+
+# First, plot all individual trees
+ax = wpg_borders.boundary.plot(edgecolor='k')
+trees.plot(markersize=0.05, color='g', ax=ax)
+ax.axis('off')
+
+# Now, plot the tree distribution
+ax = wpg_borders.boundary.plot(edgecolor='k')
 ax.axis('off')
 
 # Use the limits for the city map
@@ -199,6 +209,6 @@ pred = np.exp(log_pred)
 
 # Show the tree distribution
 levels = np.linspace(pred.min(), pred.max(), 100)
-ax.contourf(xx, yy, pred, alpha=0.3, levels=levels)
+ax.contourf(xx, yy, pred, alpha=0.3, levels=levels, cmap='inferno')
 
 plt.show()
