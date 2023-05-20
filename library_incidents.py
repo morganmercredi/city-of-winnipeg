@@ -191,7 +191,7 @@ plt.gca().set_title('Library Incidents Over Time (Millennium Library)')
 # by_year_and_library = by_year_library_type.groupby(axis=1, level=0).sum() 
 
 # Get the daily number of daily incidents
-daily_incidents = incidents.resample('D', kind='period').size()
+daily_incidents = incidents.resample('D').size()
 
 # The date that Millennium library implemented enhanced security screening
 millennium_screening = pd.to_datetime('2019-02-27')
@@ -200,12 +200,12 @@ millennium_screening = pd.to_datetime('2019-02-27')
 first_lockdown = pd.to_datetime('2020-03-16')
 
 # Get the daily number of daily incidents at the Millennium library
-daily_millennium_incidents = incidents[incidents['Location'] == 'Millennium'].resample('D', kind='period').size()
+daily_millennium_incidents = incidents[incidents['Location'] == 'Millennium'].resample('D').size()
 
 # Resample to weekly incidents and show them for 2018 and 2019
 fig, ax = plt.subplots(2, figsize=(10, 10))
-daily_millennium_incidents.resample('W', kind='period').sum()['2018'].plot(ax=ax[0])
-daily_millennium_incidents.resample('W', kind='period').sum()['2019'].plot(ax=ax[1]) 
+daily_millennium_incidents.resample('W').sum().loc['2018'].plot(ax=ax[0])
+daily_millennium_incidents.resample('W').sum().loc['2019'].plot(ax=ax[1]) 
 ax[0].set_ylabel('Number of incidents')
 ax[1].set_ylabel('Number of incidents')
 ax[0].set_ylim([0, 30]) 
@@ -233,7 +233,7 @@ plt.annotate(xytext=(millennium_screening + datetime.timedelta(days=20), 20),
 
 # Show the total weekly incidents going from 2013 to 2021
 fig = plt.figure(figsize=(30, 5))
-ax = daily_millennium_incidents.resample('W', kind='period').sum()['2013':'2021'].plot()
+ax = daily_millennium_incidents.resample('W').sum().loc['2013':'2021'].plot()
 ax.set_ylabel('Number of incidents')
 ax.set_ylim([0, 25]) 
 ax.set_title('Weekly Incidents at Millennium Library')

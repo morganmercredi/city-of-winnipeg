@@ -117,11 +117,11 @@ plt.gca().set_ylabel('Number of visitors')
 plt.gca().set_title('Library Visitors by Month for Selected Libraries')
 
 # Get total weekly visits over time
-weekly_visits = counts['Count'].resample('W', kind='period').sum()
+weekly_visits = counts['Count'].resample('W').sum()
 
 # Show total weekly visits for 2015
 plt.figure()
-weekly_visits['2015'].plot()
+weekly_visits.loc['2015'].plot()
 plt.gca().set_xlabel('Date')
 plt.gca().set_ylabel('Number of visitors')
 plt.gca().set_title('Weekly Library Visitors in 2015')
