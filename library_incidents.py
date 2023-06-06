@@ -68,7 +68,7 @@ by_year = incidents.groupby(incidents.index.year).size()
 print(incidents.loc['2012']) # there are only two incidents recorded
 
 # Remove the year 2012 just to make things simpler (incomplete data)
-incidents = incidents.sort_index().loc['2013':'2021'] # sorted to avoid deprecation warning
+incidents = incidents.sort_index().loc['2013':'2023'] # sorted to avoid deprecation warning
 
 # Show the number of incidents each year
 plt.figure()

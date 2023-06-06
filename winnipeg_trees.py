@@ -24,7 +24,7 @@ nbhd_url = 'https://data.winnipeg.ca/api/views/xaux-29zr/rows.csv?accessType=DOW
 trees = pd.read_csv(tree_url)
 
 # Remove the 'x', 'y', and 'ded_tag_no' columns
-trees = trees.drop(columns=['x', 'y', 'ded_tag_no'])
+trees = trees.drop(columns=['x', 'y', 'ded_tag_no', 'street', 'st_from', 'st_to'])
 
 # Load the ward boundaries
 # We'll need this for calculating tree density
@@ -149,14 +149,14 @@ tree_species_stats = trees.groupby('common')['dbh'].agg(['mean', 'std'])
 # in measured diameter
 plt.figure()
 tree_species_stats.plot.scatter(x='mean', y='std', c='b')
-plt.gca().set_xlabel('Average measured diameter')
-plt.gca().set_ylabel('Standard deviation in measured diameter')
-plt.gca().set_title('Average and Standard Deviation in Measured Diameter by Tree Species')
+plt.gca().set_xlabel('Mean diameter (cm)')
+plt.gca().set_ylabel('Standard deviation in diameter (cm)')
+plt.gca().set_title('Mean and Standard Deviation in Measured Diameter by Tree Species')
 
 # Show the distribution of diameters for American Elm (e.g.)
 plt.figure()
 trees[trees['common'] == 'American Elm']['dbh'].hist(bins=100, range=(0, 125))
-plt.gca().set_xlabel('Diameter')
+plt.gca().set_xlabel('Diameter (cm)')
 plt.gca().set_ylabel('Number of occurrences')
 plt.gca().set_title('Distribution of American Elm Diameters')
 
